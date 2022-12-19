@@ -2,7 +2,8 @@ CREATE TABLE task (
         id BIGSERIAL PRIMARY KEY,
         date DATE NOT NULL,
         description TEXT,
-        done BOOLEAN NOT NULL DEFAULT FALSE
+        done BOOLEAN NOT NULL DEFAULT FALSE,
+        user_id BIGINT references users(id)
 );
 
 CREATE INDEX task_date_idx ON task (date);

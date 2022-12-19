@@ -1,62 +1,54 @@
 package ru.myprojectspring.todo_list.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import ru.myprojectspring.todo_list.model.Task;
-import ru.myprojectspring.todo_list.repository.TaskRepository;
+import ru.myprojectspring.todo_list.model.User;
+import ru.myprojectspring.todo_list.service.task.TaskServiceImpl;
+import ru.myprojectspring.todo_list.service.user.UserDetailsServiceImpl;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
 
     @Autowired
-    private TaskRepository taskRepository;
+    private TaskServiceImpl taskService;
+
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
 
     @PostMapping
-    public Task addTask(@RequestBody Task task) {
-        return taskRepository.save(task);
-    }
-
-    @PostMapping("/all")
-    public List<Task> addAllTasks(@RequestBody List<Task> taskList) {
-        return taskList.stream().map(this::addTask).toList();
+    public Task create(@RequestBody Task task) {
+        return taskService.create(task);
     }
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return (List<Task>) taskRepository.findAll();
+    public List<Task> findMyTasks(@AuthenticationPrincipal User user) {
+        return taskService.findMyTasks(user);
     }
 
-    @GetMapping("{id}")
-    public Task getTaskById(@PathVariable Long id) {
-        return findTaskById(id);
+    @GetMapping("id/{tid}")
+    public Task findMyTaskById(@AuthenticationPrincipal User user,
+                               @PathVariable Long tid) {
+        return taskService.findMyTaskById(user, tid);
     }
 
-    @PutMapping("{id}/done")
-    public Task markAsDone(@PathVariable Long id) {
-        Task task = findTaskById(id);
-        if (!task.isDone()) {
-            task.setDone(true);
-        }
-        return taskRepository.save(task);
+    @GetMapping("desc/{desc}")
+    public Task findMyTaskByDesc(@AuthenticationPrincipal User user,
+                                 @PathVariable String desc) {
+        return taskService.findMyTaskByDesc(user, desc);
     }
 
-    @PatchMapping("{id}/done:mark-as-done")
-    public void patchMethod(@PathVariable Long id){
-        if (!findTaskById(id).isDone()) {
-            taskRepository.markAsDone(id);
-        }
+    @GetMapping("{tid}/done")
+    public void markAsDone(@PathVariable Long tid) {
+        taskService.markAsDone(tid);
     }
 
-    @DeleteMapping("{id}")
-    public void deleteTaskById(@PathVariable Long id) {
-        taskRepository.deleteById(id);
-    }
-
-    private Task findTaskById(@PathVariable Long id) {
-        return taskRepository.findById(id).orElseThrow();
+    @DeleteMapping("{tid}/delete")
+    public void deleteById(@PathVariable Long tid) {
+        taskService.deleteById(tid);
     }
 }
